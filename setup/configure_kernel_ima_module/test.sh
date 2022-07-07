@@ -5,6 +5,7 @@
 [ -z "${IMA_APPRAISE}" ] && IMA_APPRAISE="fix"
 [ -z "${IMA_POLICY}" ] && IMA_POLICY="tcb"
 [ -z "${IMA_TEMPLATE}" ] && IMA_TEMPLATE="ima-ng"
+[ -z "${IMA_HASH}" ] && IMA_HASH="sha256"
 [ -z "${IMA_POLICY_FILE}" ] && IMA_POLICY_FILE="ima-policy-simple"
 
 COOKIE=/var/tmp/configure-kernel-ima-module-rebooted
@@ -16,11 +17,12 @@ rlJournalStart
     rlPhaseStartSetup "pre-reboot phase"
         rlRun 'rlImport "./test-helpers"' || rlDie "cannot import keylime-tests/test-helpers library"
         rlRun "grubby --info DEFAULT | grep '^args'"
-        rlRun "grubby --update-kernel DEFAULT --args 'ima_appraise=${IMA_APPRAISE} ima_policy=${IMA_POLICY} ima_template=${IMA_TEMPLATE}'"
+        rlRun "grubby --update-kernel DEFAULT --args 'ima_appraise=${IMA_APPRAISE} ima_policy=${IMA_POLICY} ima_template=${IMA_TEMPLATE} ima_hash=${IMA_HASH}'"
         rlRun -s "grubby --info DEFAULT | grep '^args'"
         rlAssertGrep "ima_appraise=${IMA_APPRAISE}" $rlRun_LOG
         rlAssertGrep "ima_policy=${IMA_POLICY}" $rlRun_LOG
         rlAssertGrep "ima_template=${IMA_TEMPLATE}" $rlRun_LOG
+        rlAssertGrep "ima_hash=${IMA_HASH}" $rlRun_LOG
         rlRun "touch $COOKIE"
         # generate key and certificate for IMA
         rlRun "limeInstallIMAKeys"
@@ -42,6 +44,7 @@ rlJournalStart
         rlAssertGrep "ima_appraise=${IMA_APPRAISE}" $rlRun_LOG
         rlAssertGrep "ima_policy=${IMA_POLICY}" $rlRun_LOG
         rlAssertGrep "ima_template=${IMA_TEMPLATE}" $rlRun_LOG
+        rlAssertGrep "ima_hash=${IMA_HASH}" $rlRun_LOG
         rlRun "rm $COOKIE"
 
         if [ "${IMA_STATE}" == "on" -o "${IMA_STATE}" == "1" ]; then
